@@ -60,6 +60,8 @@ export class CartPage {
   }
 
   async goToCheckout(): Promise<void> {
+    await this.expectCartHasAtLeastOneItem();
+
     const checkoutVisible = await this.checkoutButton.first().isVisible().catch(() => false);
     if (checkoutVisible) {
       await this.checkoutButton.first().click();

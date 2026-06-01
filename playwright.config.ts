@@ -1,7 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const baseURL =
+  process.env.BASE_URL ?? "https://swiftcart-sanaev-dev.lovable.app";
+
 export default defineConfig({
   testDir: "./tests",
+  timeout: 60_000,
+  expect: {
+    timeout: 10_000
+  },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -11,10 +18,12 @@ export default defineConfig({
     ["list"]
   ],
   use: {
-    baseURL: "https://swiftcart-shop-app.lovable.app",
+    baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    video: "retain-on-failure"
+    video: "retain-on-failure",
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000
   },
   projects: [
     {

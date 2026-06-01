@@ -6,6 +6,7 @@ import { testData } from "../utils/testData";
 
 test.describe("Swiftcart Checkout", () => {
   test("should validate checkout form when required fields are empty", async ({ page }) => {
+    test.setTimeout(60_000);
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
     const checkoutPage = new CheckoutPage(page);

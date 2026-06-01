@@ -14,7 +14,8 @@ export class ProductsPage {
   constructor(page: Page) {
     this.page = page;
     this.searchInput = page
-      .getByTestId("search-input")
+      .getByTestId("products-search-input")
+      .or(page.getByTestId("search-input"))
       .or(page.getByRole("searchbox"))
       .or(page.locator("input[placeholder*='Search']"));
     this.searchButton = page
@@ -26,12 +27,8 @@ export class ProductsPage {
     this.categoryCheckbox = page
       .getByTestId("category-checkbox")
       .or(page.getByRole("checkbox"));
-    this.productCard = page
-      .getByTestId("product-card")
-      .or(page.locator("[data-testid='product-item'], .product-card, [class*='product']"));
-    this.productLink = page
-      .getByTestId("product-link")
-      .or(page.locator("a[href*='/products/']"));
+    this.productCard = page.getByTestId("product-card");
+    this.productLink = page.locator("a[href*='/products/p']");
     this.productCountText = page
       .getByTestId("products-count")
       .or(page.getByText(/products?/i));
@@ -51,8 +48,10 @@ export class ProductsPage {
   }
 
   async applyCategoryFilter(category: string): Promise<void> {
+    const categorySlug = category.toLowerCase().replace(/\s+/g, "-");
     const categoryOption = this.page
-      .getByTestId(`filter-${category.toLowerCase()}`)
+      .getByTestId(`filter-category-${categorySlug}`)
+      .or(this.page.getByTestId(`filter-${categorySlug}`))
       .or(this.page.getByRole("checkbox", { name: new RegExp(category, "i") }));
     if (await categoryOption.first().isVisible().catch(() => false)) {
       await categoryOption.first().check().catch(async () => {
@@ -69,27 +68,21 @@ export class ProductsPage {
   }
 
   async addFirstProductToCart(): Promise<void> {
-    if (await this.productLink.first().isVisible().catch(() => false)) {
-      await this.productLink.first().click();
-      await expect(this.page).toHaveURL(/\/products\//);
-    }
+    await expect(this.productCard.first()).toBeVisible({ timeout: 7000 });
 
     if (await this.addToCartButton.first().isVisible().catch(() => false)) {
       await this.addToCartButton.first().click();
       return;
     }
 
-    await this.productCard.first().scrollIntoViewIfNeeded();
-    const cardButton = this.productCard.first().getByRole("button", { name: /add to cart/i });
-    await cardButton.click();
+    await this.productCard.first().click();
+    await expect(this.page).toHaveURL(/\/products\/p/);
+    await expect(this.addToCartButton.first()).toBeVisible({ timeout: 7000 });
+    await this.addToCartButton.first().click();
+    await expect(this.page.getByTestId("cart-count")).toHaveText(/[1-9]/, { timeout: 10000 });
   }
 
   async expectProductsVisible(): Promise<void> {
-    const cardVisible = await this.productCard.first().isVisible().catch(() => false);
-    if (cardVisible) {
-      await expect(this.productCard.first()).toBeVisible({ timeout: 7000 });
-      return;
-    }
-    await expect(this.productLink.first()).toBeVisible({ timeout: 7000 });
+    await expect(this.productCard.first()).toBeVisible({ timeout: 7000 });
   }
 }

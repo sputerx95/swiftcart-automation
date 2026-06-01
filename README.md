@@ -36,7 +36,18 @@ swiftcart-automation/
 
 ```bash
 npm install
+npx playwright install
 ```
+
+## Target application
+
+Tests run against the published Swiftcart Lovable deployment. Override the URL if you republish under a different hostname:
+
+```bash
+BASE_URL=https://your-swiftcart.lovable.app npm test
+```
+
+The default is `https://swiftcart-sanaev-dev.lovable.app`. The older `swiftcart-shop-app.lovable.app` URL is no longer published and will cause all tests to fail.
 
 ## Run Tests
 

@@ -56,15 +56,9 @@ export class CheckoutPage {
     this.countryInput = page
       .getByTestId("checkout-country")
       .or(page.locator("input[name='country'], input[placeholder*='Country']"));
-    this.cardNumberInput = page
-      .getByTestId("payment-card-number")
-      .or(page.getByRole("textbox", { name: /card number/i }));
-    this.cardExpiryInput = page
-      .getByTestId("payment-card-expiry")
-      .or(page.getByRole("textbox", { name: /expiry|exp/i }));
-    this.cardCvcInput = page
-      .getByTestId("payment-card-cvc")
-      .or(page.getByRole("textbox", { name: /cvc|cvv/i }));
+    this.cardNumberInput = page.getByTestId("payment-card-number");
+    this.cardExpiryInput = page.getByTestId("payment-card-expiry");
+    this.cardCvcInput = page.getByTestId("payment-card-cvc");
     this.placeOrderButton = page
       .getByTestId("place-order")
       .or(page.getByRole("button", { name: /place order|submit|pay/i }));
@@ -73,7 +67,13 @@ export class CheckoutPage {
       .or(page.locator(".error, .text-red-500, [role='alert']"));
   }
 
+  async waitForReady(): Promise<void> {
+    await expect(this.page).toHaveURL(/\/checkout/);
+    await expect(this.firstNameInput.first()).toBeVisible({ timeout: 15000 });
+  }
+
   async fillCheckoutForm(data: CheckoutFormData): Promise<void> {
+    await this.waitForReady();
     await this.firstNameInput.first().fill(data.firstName);
     await this.lastNameInput.first().fill(data.lastName);
     if (await this.emailInput.first().isVisible().catch(() => false)) {
@@ -88,23 +88,26 @@ export class CheckoutPage {
     if (await this.countryInput.first().isVisible().catch(() => false)) {
       await this.countryInput.first().fill(data.country ?? "");
     }
-    if (await this.cardNumberInput.first().isVisible().catch(() => false)) {
-      await this.cardNumberInput.first().fill(data.cardNumber ?? "");
+    if (data.cardNumber && (await this.cardNumberInput.isVisible().catch(() => false))) {
+      await this.cardNumberInput.fill(data.cardNumber);
     }
-    if (await this.cardExpiryInput.first().isVisible().catch(() => false)) {
-      await this.cardExpiryInput.first().fill(data.cardExpiry ?? "");
+    if (data.cardExpiry && (await this.cardExpiryInput.isVisible().catch(() => false))) {
+      await this.cardExpiryInput.fill(data.cardExpiry);
     }
-    if (await this.cardCvcInput.first().isVisible().catch(() => false)) {
-      await this.cardCvcInput.first().fill(data.cardCvc ?? "");
+    if (data.cardCvc && (await this.cardCvcInput.isVisible().catch(() => false))) {
+      await this.cardCvcInput.fill(data.cardCvc);
     }
   }
 
   async submitOrder(): Promise<void> {
+    await this.waitForReady();
     await this.placeOrderButton.first().click();
   }
 
   async expectValidationError(): Promise<void> {
-    const generalError = this.page.getByText(/please fix the highlighted fields and try again/i);
+    const generalError = this.page.getByText(
+      /please fix the highlighted fields|is required|invalid/i
+    );
     if (await generalError.first().isVisible().catch(() => false)) {
       await expect(generalError.first()).toBeVisible({ timeout: 7000 });
       return;

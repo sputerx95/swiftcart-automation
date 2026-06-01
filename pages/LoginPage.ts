@@ -29,18 +29,23 @@ export class LoginPage {
       .getByTestId("login-error")
       .or(page.locator(".error, .alert-error, [role='alert']"));
     this.loginSuccessIndicator = page
-      .getByTestId("account-menu")
+      .getByTestId("logout-button")
+      .or(page.getByTestId("account-menu"))
       .or(page.locator("[data-auth='logged-in']"))
       .or(page.getByText(/welcome|my account|logout|sign out/i));
   }
 
   async goto(): Promise<void> {
-    await this.page.goto("/");
+    await this.page.goto("/login");
   }
 
   async openLoginIfPresent(): Promise<void> {
+    if (/\/login/i.test(this.page.url())) {
+      return;
+    }
     if (await this.loginLink.first().isVisible().catch(() => false)) {
       await this.loginLink.first().click();
+      await this.page.waitForURL(/\/login/i, { timeout: 10000 }).catch(() => {});
     }
   }
 

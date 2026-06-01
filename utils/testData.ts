@@ -1,5 +1,5 @@
 export const testData = {
-  baseUrl: "https://swiftcart-shop-app.lovable.app/",
+  baseUrl: "https://swiftcart-sanaev-dev.lovable.app/",
   validUser: {
     email: "demo@swiftcart.com",
     password: "password123"
